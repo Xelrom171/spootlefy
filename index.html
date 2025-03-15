@@ -192,6 +192,13 @@ width: 210px;}
                 togglePlayback();
             }
         });
+        // 🪄 **Ensure iOS allows audio after user interaction**
+        document.addEventListener("click", function() {
+            const youtubePlayer = document.getElementById("youtube-player");
+            if (youtubePlayer.src && isPlaying) {
+                youtubePlayer.src += "&autoplay=1";
+            }
+        });
     </script>
 
 </body>

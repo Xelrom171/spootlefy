@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #search-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 250px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #search-button {
+            padding: 10px;
+            font-size: 16px;
+            margin-left: 10px;
+            background-color: #1db954;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #search-button:hover {
+            background-color: #1ed760;
+        }
+
+        #song-results {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .song {
+            margin: 10px;
+            cursor: pointer;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .song:hover {
+            background-color: #444;
+        }
+
+        #music-player {
+            margin-top: 30px;
+        }
+
+        #play-pause-button {
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+            background-color: #ff4757;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #play-pause-button:hover {
+            background-color: #ff6b81;
+        }
+
+        iframe {
+            width: 0;
+            height: 0;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Search for music or artists..." />
+            <button id="search-button">Search</button>
+        </div>
+
+        <div id="song-results"></div>
+
+        <div id="music-player">
+            <h3 id="song-title">Select a Song</h3>
+            <iframe id="youtube-player" width="0" height="0" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+            <button id="play-pause-button">Play</button>
+        </div>
+
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let currentVideoId = "";
+
+        document.getElementById("search-button").addEventListener("click", function() {
+            let query = document.getElementById("search-input").value;
+            if (query) {
+                searchMusic(query);
+            }
+        });
+
+        function searchMusic(query) {
+            const apiKey = 'AIzaSyBEeolrRbBxIfISR-enmqo90aheJ1DgBJ8'; 
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&videoCategoryId=10&maxResults=10&key=${apiKey}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => displayResults(data.items))
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById("song-results").innerHTML = '<p>Failed to load results.</p>';
+                });
+        }
+
+        function displayResults(videos) {
+            const resultsContainer = document.getElementById("song-results");
+            resultsContainer.innerHTML = ''; 
+
+            videos.forEach(video => {
+                const songDiv = document.createElement('div');
+                songDiv.classList.add('song');
+                songDiv.innerHTML = `${video.snippet.title} - ${video.snippet.channelTitle}`;
+                songDiv.addEventListener('click', function() {
+                    playAudio(video.id.videoId, video.snippet.title, video.snippet.channelTitle);
+                });
+                resultsContainer.appendChild(songDiv);
+            });
+        }
+
+        function playAudio(videoId, title, artist) {
+            const youtubePlayer = document.getElementById("youtube-player");
+            const songTitle = document.getElementById("song-title");
+
+            songTitle.textContent = `${title} by ${artist}`;
+            
+            if (currentVideoId !== videoId) {
+                currentVideoId = videoId;
+                youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&showinfo=0&iv_load_policy=3`;
+                isPlaying = true;
+                document.getElementById("play-pause-button").textContent = "Pause";
+            } else {
+                togglePlayback();
+            }
+        }
+
+        function togglePlayback() {
+            const youtubePlayer = document.getElementById("youtube-player");
+
+            if (isPlaying) {
+                youtubePlayer.src = "";
+                isPlaying = false;
+                document.getElementById("play-pause-button").textContent = "Play";
+            } else {
+                youtubePlayer.src = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=0&controls=0&showinfo=0&iv_load_policy=3`;
+                isPlaying = true;
+                document.getElementById("play-pause-button").textContent = "Pause";
+            }
+        }
+
+        document.getElementById("play-pause-button").addEventListener("click", function() {
+            if (currentVideoId) {
+                togglePlayback();
+            }
+        });
+    </script>
+
+</body>
+</html>

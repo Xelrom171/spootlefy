@@ -95,14 +95,16 @@
             height: 0;
             border: none;
         }
-img{ height: 211px;
-width: 210px;}
+        
+        img {
+            height: 211px;
+            width: 210px;
+        }
     </style>
 </head>
 <body>
-<img src="spootlefy.png" alt="LOGO">
+    <img src="spootlefy.png" alt="LOGO">
     <div id="app">
-
         <div id="search-bar">
             <input type="text" id="search-input" placeholder="Search for music or artists..." />
             <button id="search-button">Search</button>
@@ -115,7 +117,6 @@ width: 210px;}
             <iframe id="youtube-player" width="0" height="0" frameborder="0" allow="autoplay; encrypted-media"></iframe>
             <button id="play-pause-button">Play</button>
         </div>
-
     </div>
 
     <script>
@@ -165,7 +166,8 @@ width: 210px;}
             
             if (currentVideoId !== videoId) {
                 currentVideoId = videoId;
-                youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&showinfo=0&iv_load_policy=3`;
+                // **CHANGED: Added enablejsapi=1 to allow postMessage controls**
+                youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&mute=0&controls=0&showinfo=0&iv_load_policy=3`;
                 isPlaying = true;
                 document.getElementById("play-pause-button").textContent = "Pause";
             } else {
@@ -177,11 +179,13 @@ width: 210px;}
             const youtubePlayer = document.getElementById("youtube-player");
 
             if (isPlaying) {
-                youtubePlayer.src = "";
+                // **CHANGED: Use postMessage to pause video**
+                youtubePlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                 isPlaying = false;
                 document.getElementById("play-pause-button").textContent = "Play";
             } else {
-                youtubePlayer.src = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=0&controls=0&showinfo=0&iv_load_policy=3`;
+                // **CHANGED: Use postMessage to play video**
+                youtubePlayer.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                 isPlaying = true;
                 document.getElementById("play-pause-button").textContent = "Pause";
             }
@@ -192,11 +196,12 @@ width: 210px;}
                 togglePlayback();
             }
         });
-        // 🪄 **Ensure iOS allows audio after user interaction**
+
+        // **CHANGED: iPhone Audio Fix - Ensure autoplay and unmute after user tap**
         document.addEventListener("click", function() {
             const youtubePlayer = document.getElementById("youtube-player");
             if (youtubePlayer.src && isPlaying) {
-                youtubePlayer.src += "&autoplay=1";
+                youtubePlayer.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
             }
         });
     </script>
